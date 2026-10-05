@@ -1,27 +1,22 @@
+# R session junk -- never useful to a collaborator
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Renviron
+.Rproj.user/
+Rplots.pdf
 
-ch6_tea_simulations_files/figure-html/unnamed-chunk-10-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-11-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-12-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-13-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-14-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-16-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-19-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-20-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-22-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-24-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-31-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-32-1.png
-ch6_tea_simulations_files/figure-html/unnamed-chunk-34-1.png
-ch6_tea_simulations_files/libs/bootstrap/bootstrap-icons.css
-ch6_tea_simulations_files/libs/bootstrap/bootstrap-icons.woff
-ch6_tea_simulations_files/libs/bootstrap/bootstrap.min.css
-ch6_tea_simulations_files/libs/bootstrap/bootstrap.min.js
-ch6_tea_simulations_files/libs/clipboard/clipboard.min.js
-ch6_tea_simulations_files/libs/quarto-html/anchor.min.js
-ch6_tea_simulations_files/libs/quarto-html/popper.min.js
-ch6_tea_simulations_files/libs/quarto-html/quarto-syntax-highlighting.css
-ch6_tea_simulations_files/libs/quarto-html/quarto.js
-ch6_tea_simulations_files/libs/quarto-html/tippy.css
-ch6_tea_simulations_files/libs/quarto-html/tippy.umd.min.js
-rsconnect/documents/ch6_tea_simulations.qmd/rpubs.com/rpubs/Document.dcf
-.Rproj.user
+# Quarto build output
+/.quarto/
+*_cache/
+rsconnect/
+
+# Operating system junk
+.DS_Store
+Thumbs.db
+
+# Rendered output. Delete these lines if your instructor asks you to
+# commit the rendered HTML with your assignment.
+ch6_tea_simulations*.html
+ch6_tea_simulations*_files/
