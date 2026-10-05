@@ -65,7 +65,7 @@ make_tea_data <- function(n_total = 48,
 ## Make data frames where we have small or larger samples of tea data for ONE experiment
 
 ```{r}
-# here's, we're calling our custom function, and specifying different inputs than the defaults (which are inside the parenthese up above)
+# here, we're calling our custom function, and specifying different inputs than the defaults (which are inside the parentheses up above)
 tea_data <- make_tea_data(n_total = 18, delta = .5)
 ```
 
@@ -210,15 +210,19 @@ ggplot(data=null_model_summary, aes(x=delta)) +
 
 We can also calculate the distribution of the difference between conditions when we've shuffled the condition labels. This is referred to as the *empirical null hypothesis* (our H0, since we're comparing two conditions with a two-sample t-test)
 
-### Let's shuffle the labels within each experiment
+### Let's shuffle the labels of ONE experiment, 1000 times
 
 ```{r}
-tea_data_highn_shuffled <- samps_highn %>%
-  group_by(sim) %>% # for each experiment
-  mutate(condition_shuffled = sample(condition)) # shuffle the condition labels
+tea_data_highn_shuffled <- tibble(sim = 1:1000) |> # 1000 shuffles
+  mutate(data = map(sim, \(i) tea_data_highn)) |> # the SAME experiment each time
+  unnest(cols = data) |>
+  group_by(sim) |> # within each shuffle...
+  mutate(condition_shuffled = sample(condition)) # ...randomly reassign the condition labels
 ```
 
-To do: check your understanding -- what is "sim" here?
+We shuffle `tea_data_highn`, the one experiment whose *p*-value we want below, not 1000 different experiments. The question a permutation test asks is: "if the labels in *this* dataset meant nothing, how big a difference would we see just by chance?"
+
+To do: check your understanding -- what is "sim" here? How is it different from `sim` in `samps_highn`?
 
 ```{r}
 tea_data_highn_shuffled_summary <- tea_data_highn_shuffled %>%
@@ -241,12 +245,12 @@ hist(tea_data_highn_shuffled_summary$delta) #what does this histogram look like?
 
 ### Visualizing what happens when we shuffle
 
-OK, now see what happens to our raw data -- this is just from one simulation The color refers to the ORIGINAL label before we shuffled, but our condition difference is gone
+OK, now see what happens to our raw data -- this is just one of the shuffles. The color refers to the ORIGINAL label before we shuffled, but our condition difference is gone
 
 The color refers to the ORIGINAL condition The x-axis refers to the SHUFFLED condition
 
 ```{r}
-ggplot(data = tea_data_highn_shuffled %>% filter(sim==3),  # can change the actual simulation number here
+ggplot(data = tea_data_highn_shuffled %>% filter(sim==3),  # can change the shuffle number here
        mapping = aes(x = condition_shuffled, y = rating))+
   geom_point(mapping = aes(color = condition), # color
              alpha=.8,
@@ -269,7 +273,7 @@ The idea is now that we can get a sampling distribution of the difference in the
 
 What we get is a distribution of the differences we would expect, if there was no effect of condition.
 
-First, let's calculate the actual difference in a simulated dataset where there was an effect
+First, let's calculate the actual difference in the experiment we shuffled (we simulated it with a true effect of delta = 0.5)
 
 ```{r}
 difference_actual <- tea_data_highn |>  # in ONE experiment
@@ -428,7 +432,7 @@ ggplot(data = tea_data_highn, aes(x=condition, y=rating, col=condition))  +
 
 ```
 
-To do: What does each dot represnet? What does the range represent in each graph? What does the confidence interval indicate? What does the SE indicate?
+To do: What does each dot represent? What does the range represent in each graph? What does the confidence interval indicate? What does the SE indicate?
 
 To do: how does this change when you use the low-n experiment?
 
