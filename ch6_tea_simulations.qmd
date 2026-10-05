@@ -1,20 +1,27 @@
 ---
 title: "Inference Simulations"
-format: html
-editor: visual
+subtitle: "PSYC 201A, Simulation Lab 2"
+author: "Your name here"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+  error: true
 ---
 
 ## Tips before getting started
 
 This is a document made to accompany some simulations for the Inference workshop in Psych 201a. The goal of this document is to continue learning in R/tidyverse but also to gain hands on experience simulating and manipulating data.\
 \
-If you need to install something, you can run `install.packages('tidyverse')`, where you substitute the name of the library
+Open this file by double-clicking `inference_simulations_lab_2.Rproj` first, then opening it from the Files pane. The only package it needs is the tidyverse, which you installed in getting-started-with-r.
 
-You should have this repository cloned on your computer.
+To understand what a function does, type `?function_name` in the Console (e.g., `?rnorm`).
 
-To understand what a function does, type `? [function_name]` where function_name refers to a function name in a loaded repository.
-
-**You can open this in RStudio -- there are so few packages it should work despite variations in environments**
+`error: true` is set at the top of this file, so it still renders while some chunks are unfinished: those chunks show their error in red. Several later chunks depend on objects you create earlier (`tea_data_highn`, `samps_highn`, `null_model`), so work from top to bottom.
 
 # Setup
 
@@ -25,10 +32,12 @@ set.seed(123) # good practice to set a random seed, or else different runs get y
 ## Import the libraries
 
 ```{r}
-# you can run install.packages('tidyverse')
+#| eval: false
+install.packages("tidyverse")
+```
+
+```{r}
 library(tidyverse)
-library(ggplot2) # plotting
-library(ggthemes) # good for making plots pretty
 ```
 
 # Part 1: Simulating experimental data
@@ -44,7 +53,7 @@ So, here, DELTA is the difference is the tea ratings, on average, between the tw
 ```{r}
 make_tea_data <- function(n_total = 48,
                           sigma = 1.25, # sd of the distribution
-                          delta = 1.5) {  # difference between distributinos
+                          delta = 1.5) {  # difference between distributions
   n_half <- n_total / 2 # half of the total subjects  = #/n subs per condition
   tibble(condition = c(rep("milk first", n_half), rep("tea first", n_half)),
          rating = c(round(
@@ -81,9 +90,9 @@ To do: Write basic tidyverse code to calculate the mean of each condition (hint:
 
 ## In this first draw, was it significant with N=9 or N=24 per group?
 
-OK, we can do t-tests already! I've done these within a pipe (whoops, I often use the old pipe `%>%` operator which is the same as `|>` , don't mind this difference.
+OK, we can do t-tests already! I've done these within a pipe (I often use the old pipe `%>%`, which does the same thing as `|>`; don't mind the difference).
 
-To do: Run these and look at the outputs by posting `out_low_n` in the console and \``out_low_h` in the console.
+To do: Run these and look at the outputs by typing `out_low_n` and `out_high_n` in the console.
 
 R practice: Use the `$` operator and then press `tab` to see how you can get specific values (i.e., the `t` or `p` value) from the outputs.
 
@@ -196,7 +205,7 @@ tea_data_highn_shuffled <- samps_highn %>%
   mutate(condition_shuffled = sample(condition)) # shuffle the condition labels, handy function here.
 ```
 
-To do: check you understanding -- what is "sim" here?
+To do: check your understanding -- what is "sim" here?
 
 ```{r}
 tea_data_highn_shuffled_summary <- tea_data_highn_shuffled %>%
@@ -213,7 +222,7 @@ tea_data_highn_shuffled_summary <- tea_data_highn_shuffled_summary %>%
 
 To do: what does this histogram look like and why?
 
-```{R}
+```{r}
 hist(tea_data_highn_shuffled_summary$delta) #what does this histogram look like?
 ```
 
@@ -230,9 +239,9 @@ ggplot(data = tea_data_highn_shuffled %>% filter(sim==3),  # can change the actu
              alpha=.8,
              position = position_jitter(height = .1,
                                         width = 0.1)) +
-  stat_summary(fun.data = mean_cl_boot, # this boostraps the confidence interval
+  stat_summary(fun.data = mean_se, fun.args = list(mult = 1.96), # mean +/- 1.96 SE: an approximate 95% CI
                geom = "linerange",
-               size = 1) +
+               linewidth = 1) +
   stat_summary(fun = "mean", # this calculates the average
                geom = "point",
                shape = 21,
@@ -250,11 +259,12 @@ What we get is a distribution of the differences we would expect, if there was n
 First, let's calculate the actual difference in a simulated dataset where there was an effect
 
 ```{r}
-difference_actual = tea_data_highn %>%  # in ONE experiment
-  group_by(condition) %>% 
-  summarize(mean = mean(rating)) %>% 
-  pull(mean) %>% 
-  diff()
+difference_actual <- tea_data_highn |>  # in ONE experiment
+  group_by(condition) |>
+  summarize(mean_rating = mean(rating)) |>
+  summarise(delta = mean_rating[condition == "milk first"] -
+              mean_rating[condition == "tea first"]) |>
+  pull(delta)
 ```
 
 Plot the distribution of the differences across all of our shuffled iterations
@@ -263,14 +273,14 @@ And in red -- is the numerical value from when there was an effect (because we s
 
 ```{r}
 ggplot(data = tea_data_highn_shuffled_summary, aes(x=delta)) +
-  geom_histogram(aes(y = stat(density)),
+  geom_histogram(aes(y = after_stat(density)),
                  color = "black",
                  fill = "lightblue",
                  binwidth = 0.05) + 
   stat_density(geom = "line",
-               size = 1.5,
+               linewidth = 1.5,
                bw = 0.2) +
-  geom_vline(xintercept = difference_actual, color = "red", size = 2) +
+  geom_vline(xintercept = difference_actual, color = "red", linewidth = 2) +
   labs(x = "difference between means") 
   
 
@@ -281,8 +291,9 @@ And we can THEN calculate the p-value by using some basic data wrangling -- it i
 If this feels tough, don't worry - we will go over these concepts more again on Friday!
 
 ```{r}
-tea_data_highn_shuffled_summary %>% 
-  summarize(p_value = sum(delta <= difference_actual)/n())
+# two-sided: shuffled differences at least as far from zero as the observed one
+tea_data_highn_shuffled_summary |>
+  summarize(p_value = mean(abs(delta) >= abs(difference_actual)))
 ```
 
 You can also see this if you plot the distributions of the null vs empirical simulations next to each other (blue = null, which is appropriately centered at zero. This should remind you of the cohen's d web app we looked at!)
@@ -358,10 +369,10 @@ The above code does this by hand - but it's to show you what this function is do
 
 ```{r}
 # Now the calculated CIs match those in the t-test outputs!
-t.test(tea_ratings, milk_ratings, var.equal=TRUE)
+t.test(milk_ratings, tea_ratings, var.equal = TRUE)
 ```
 
-### Ploting CIs by hand for each condition
+### Plotting CIs by hand for each condition
 
 Also plot the SEs, and visualize how they're different
 
@@ -378,12 +389,12 @@ tea_data_highn_summary_cis <- tea_data_highn %>%
   mutate(se_upper = cond_mean + cond_sd/sqrt(n), se_lower = cond_mean - cond_sd/sqrt(n))
 ```
 
-Between subjects experiment -- lots of variability! I like to visualize the raw datas as well as the mean and CIs
+Between subjects experiment -- lots of variability! I like to visualize the raw data as well as the mean and CIs
 
 ```{r}
 ggplot(data = tea_data_highn, aes(x=condition, y=rating, col=condition))  +
   geom_jitter(width=.1, height=0, alpha=.3) + # visualizes all the raw data, with no variation in y-axis jitter
-  theme_few() +
+  theme_classic() +
   geom_pointrange(data = tea_data_highn_summary_cis, aes(x=condition, y = cond_mean, ymin = ci_lower, ymax = ci_upper)) +
   ylim(0,10) +
   ggtitle('Tea ratings across conditions with CIs')
@@ -393,7 +404,7 @@ ggplot(data = tea_data_highn, aes(x=condition, y=rating, col=condition))  +
 ```{r}
 ggplot(data = tea_data_highn, aes(x=condition, y=rating, col=condition))  +
   geom_jitter(width=.1, height=0, alpha=.5) + # visualizes all the raw data, with no variation in y-axis jitter
-  theme_few() +
+  theme_classic() +
   geom_pointrange(data = tea_data_highn_summary_cis, aes(x=condition, y = cond_mean, ymin = se_lower, ymax = se_upper)) +
   ylim(0,10) +
   ggtitle('Tea ratings across condition with SE')
@@ -421,7 +432,7 @@ for (this_sim in 1:1000) {
   tea_ratings <- filter(this_experiment, condition == "tea first")$rating
   milk_ratings <- filter(this_experiment, condition == "milk first")$rating
   
-  output = t.test(tea_ratings, milk_ratings)
+  output = t.test(tea_ratings, milk_ratings, var.equal = TRUE)
   
   this_exp_output = tibble(pvalue = output$p.value)
   all_results = bind_rows(all_results, this_exp_output)
@@ -464,9 +475,12 @@ for (this_sim in 1:500) {
 
 How often did we fail to reject the null hypothesis? When was our p-value greater than p=.05? What does the distribution of p-values look like?
 
-\`\`\`{R} \# you'll need all_results_high_n\$pvalue \`\`\`\`
+```{r}
+# you'll need all_results_high_n$pvalue
 
-# Excercises
+```
+
+# Exercises
 
 1.  Now go back (earlier in the code) and modify the DELTA in the simulation functions to be smaller so that there is only a small difference between groups. Is it still significant?
 
